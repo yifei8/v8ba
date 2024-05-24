@@ -5,13 +5,13 @@ on: [push, workflow_dispatch]
 jobs:
   build_android_arm64:
     name: android-arm64
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.8.10'
+          python-version: '3.11.7'
       - uses: nttld/setup-ndk@v1
         with:
           ndk-version: r22b
