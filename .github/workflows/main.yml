@@ -54,7 +54,7 @@ jobs:
           ]
           target_os = ["android"]' > .gclient
       - run: cat .gclient
-      - run: cd v8 && git checkout 12.6-lkgr
+      - run: cd v8 && git checkout main
       - run: cd v8 && gclient sync
       - run: cd v8 && ls -a
       - run: cd v8 && tools/dev/v8gen.py arm64.release -vv
