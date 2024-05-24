@@ -5,7 +5,7 @@ on: [push, workflow_dispatch]
 jobs:
   build_android_arm64:
     name: android-arm64
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -54,7 +54,7 @@ jobs:
           ]
           target_os = ["android"]' > .gclient
       - run: cat .gclient
-      - run: cd v8 && git checkout main
+      - run: cd v8 && git checkout -b 9.3-lkgr origin/9.3-lkgr
       - run: cd v8 && gclient sync
       - run: cd v8 && ls -a
       - run: cd v8 && tools/dev/v8gen.py arm64.release -vv
