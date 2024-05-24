@@ -1,0 +1,91 @@
+name: Build and release v8
+
+on: [push, workflow_dispatch]
+
+jobs:
+  build_android_arm64:
+    name: android-arm64
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.8.10'
+      - uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r22b
+      - run: ls -a
+      - name: Setup Ninja
+        uses: ashutoshvarma/setup-ninja@master
+        with:
+          version: 1.10.0
+      - name: Install Depot Tools
+        shell: pwsh
+        run: |
+          $RepositoryUrl = "https://chromium.googlesource.com/chromium/tools/depot_tools.git"
+          $InstallLocation = "~/depot_tools"
+          New-Item $InstallLocation -ItemType Directory -ea 0
+          Set-Location $InstallLocation
+          $InstallLocation = Resolve-Path -Path $InstallLocation
+          git clone $RepositoryUrl .
+          "DEPOT_TOOLS=$InstallLocation" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+      - name: Set Depot Tools PATH
+        shell: bash
+        run: |
+          echo "$DEPOT_TOOLS" >> $GITHUB_PATH
+      - name: Fetch v8
+        run: |
+          pwd
+          gclient
+          fetch v8
+      - run: cd v8 && git checkout main
+      - run: cd v8 && gclient sync
+      - run: cat .gclient
+      - run: rm .gclient
+      - run: |
+          echo 'solutions = [
+            {
+              "name": "v8",
+              "url": "https://chromium.googlesource.com/v8/v8.git",
+              "deps_file": "DEPS",
+              "managed": False,
+              "custom_deps": {},
+            },
+          ]
+          target_os = ["android"]' > .gclient
+      - run: cat .gclient
+      - run: cd v8 && ls -a
+      - run: cd v8 && tools/dev/v8gen.py arm64.release -vv
+      - run: cat v8/out.gn/arm64.release/args.gn
+      - run: rm v8/out.gn/arm64.release/args.gn
+      - run: |
+          echo 'dcheck_always_on = false
+          is_debug = false
+          target_os = "android"
+          target_cpu = "arm64"
+          v8_target_cpu = "arm64"
+          is_component_build = false
+          use_custom_libcxx = false
+          v8_android_log_stdout = true
+          v8_enable_i18n_support = false
+          v8_static_library = true
+          v8_use_external_startup_data = false
+          v8_imminent_deprecation_warnings = false
+          clang_use_chrome_plugins = false
+          symbol_level = 0' > v8/out.gn/arm64.release/args.gn
+      - run: cat v8/out.gn/arm64.release/args.gn
+      - name: Build
+        run: |
+          ninja -C v8/out.gn/arm64.release -t clean
+          ninja -C v8/out.gn/arm64.release v8
+      - run: cd v8 && ls -la
+      - run: cd v8/out.gn && ls -la
+      - run: cd v8/out.gn/arm64.release && ls -la
+      - run: cd v8/out.gn/arm64.release/obj && ls -la
+      - uses: actions/upload-artifact@v2
+        with:
+          name: v8_android_arm64
+          path: |
+            v8/include
+            v8/out.gn/arm64.release/obj
