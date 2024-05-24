@@ -5,13 +5,13 @@ on: [push, workflow_dispatch]
 jobs:
   build_android_arm64:
     name: android-arm64
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.8.10'
+          python-version: '3.11.7'
       - uses: nttld/setup-ndk@v1
         with:
           ndk-version: r22b
@@ -39,8 +39,7 @@ jobs:
           pwd
           gclient
           fetch v8
-      - run: cd v8 && git checkout main
-      - run: cd v8 && gclient sync
+          ls -a
       - run: cat .gclient
       - run: rm .gclient
       - run: |
@@ -55,6 +54,8 @@ jobs:
           ]
           target_os = ["android"]' > .gclient
       - run: cat .gclient
+      - run: cd v8 && git checkout 12.6-lkgr
+      - run: cd v8 && gclient sync
       - run: cd v8 && ls -a
       - run: cd v8 && tools/dev/v8gen.py arm64.release -vv
       - run: cat v8/out.gn/arm64.release/args.gn
