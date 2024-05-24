@@ -79,7 +79,7 @@ jobs:
       - name: Build
         run: |
           ninja -C v8/out.gn/arm64.release -t clean
-          ninja -C v8/out.gn/arm64.release v8
+          ninja -C v8/out.gn/arm64.release v8_static
       - run: cd v8 && ls -la
       - run: cd v8/out.gn && ls -la
       - run: cd v8/out.gn/arm64.release && ls -la
